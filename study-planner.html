@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Study Planner</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #e9ecef; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        h1 { text-align: center; color: #333; }
+        .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
+        button { padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button:hover { background-color: #218838; }
+        ul { list-style-type: none; padding: 0; }
+        li { background: #f8f9fa; border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .task-info { display: flex; flex-direction: column; }
+        .task-title { font-weight: bold; font-size: 16px; color: #333; }
+        .task-subject { font-size: 12px; color: #666; margin-top: 4px; }
+        .actions button { margin-left: 5px; padding: 5px 10px; font-size: 14px; }
+        .btn-complete { background-color: #007bff; }
+        .btn-complete:hover { background-color: #0056b3; }
+        .btn-delete { background-color: #dc3545; }
+        .btn-delete:hover { background-color: #c82333; }
+        .completed .task-title { text-decoration: line-through; color: #888; }
+        #empty-message { text-align: center; color: #888; display: none; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Study Planner</h1>
+    <div class="input-group">
+        <input type="text" id="task-title" placeholder="Task Title (e.g., Read Chapter 1)">
+        <input type="text" id="task-subject" placeholder="Subject/Course (e.g., Software Dev)">
+        <button onclick="addTask()">Add Task</button>
+    </div>
+    <ul id="task-list"></ul>
+    <p id="empty-message">No tasks yet. Add a task to get started!</p>
+</div>
+
+<script>
+    let tasks = JSON.parse(localStorage.getItem('studyTasks')) || [];
+
+    function renderTasks() {
+        const list = document.getElementById('task-list');
+        const emptyMsg = document.getElementById('empty-message');
+        list.innerHTML = ''; 
+
+        if (tasks.length === 0) {
+            emptyMsg.style.display = 'block';
+            return;
+        } else {
+            emptyMsg.style.display = 'none';
+        }
+
+        tasks.forEach((task, index) => {
+            const li = document.createElement('li');
+            if (task.completed) { li.classList.add('completed'); }
+
+            li.innerHTML = `
+                <div class="task-info">
+                    <span class="task-title">${task.title}</span>
+                    <span class="task-subject">${task.subject}</span>
+                </div>
+                <div class="actions">
+                    <button class="btn-complete" onclick="toggleComplete(${index})">
+                        ${task.completed ? 'Undo' : 'Complete'}
+                    </button>
+                    <button class="btn-delete" onclick="deleteTask(${index})">Delete</button>
+                </div>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    function addTask() {
+        const titleInput = document.getElementById('task-title');
+        const subjectInput = document.getElementById('task-subject');
+        const title = titleInput.value.trim();
+        const subject = subjectInput.value.trim();
+
+        if (title === "") {
+            alert("Please enter a task title.");
+            return;
+        }
+
+        tasks.push({ title: title, subject: subject || "No Subject", completed: false });
+        titleInput.value = '';
+        subjectInput.value = '';
+        saveTasks();
+        renderTasks();
+    }
+
+    function toggleComplete(index) {
+        tasks[index].completed = !tasks[index].completed;
+        saveTasks();
+        renderTasks();
+    }
+
+    function deleteTask(index) {
+        tasks.splice(index, 1);
+        saveTasks();
+        renderTasks();
+    }
+
+    function saveTasks() {
+        localStorage.setItem('studyTasks', JSON.stringify(tasks));
+    }
+
+    renderTasks();
+</script>
+</body>
+</html>
